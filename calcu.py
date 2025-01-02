@@ -87,7 +87,7 @@ def calcular_acumulados(df, precio_inicial, direccion):
     df['Aumento Necesario para $5000'] = (df['Break Even'] + (5000 / (df['Lotes Acumulados'] * LOTES_A_UNIDADES))) - df['Precio']
     # Calcular ganancia si el precio regresa al inicial
     if direccion == "subida":
-        df['Ganancia al Regresar al Precio Inicial'] = -((precio_inicial - df['Precio']) * df['Lotes Acumulados'] * LOTES_A_UNIDADES)
+        df['Ganancia al Regresar al Precio Inicial'] = (df['Precio'] - precio_inicial) * df['Lotes Acumulados'] * LOTES_A_UNIDADES * -1
     else:
         df['Ganancia al Regresar al Precio Inicial'] = (precio_inicial - df['Precio']) * df['Lotes Acumulados'] * LOTES_A_UNIDADES
     # Reemplazar inf, -inf y NaN en caso de divisiones por cero o acumulación cero
@@ -166,5 +166,4 @@ def main():
 # Ejecutar la aplicación
 if __name__ == "__main__":
     main()
-
 
