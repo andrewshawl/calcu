@@ -85,8 +85,14 @@ def calcular_acumulados(df, precio_inicial, direccion):
         df['Puntos de salida'] = abs(df['Precio'] - df['Break Even'])
     # Calcular el aumento necesario desde el precio actual para ganar $5000
     df['Aumento Necesario para $5000'] = (df['Break Even'] + (5000 / (df['Lotes Acumulados'] * LOTES_A_UNIDADES))) - df['Precio']
+    # Calcular ganancia si el precio regresa al inicial
+    if direccion == "subida":
+        df['Ganancia al Regresar al Precio Inicial'] = -((precio_inicial - df['Precio']) * df['Lotes Acumulados'] * LOTES_A_UNIDADES)
+    else:
+        df['Ganancia al Regresar al Precio Inicial'] = (precio_inicial - df['Precio']) * df['Lotes Acumulados'] * LOTES_A_UNIDADES
     # Reemplazar inf, -inf y NaN en caso de divisiones por cero o acumulación cero
     df['Aumento Necesario para $5000'] = df['Aumento Necesario para $5000'].replace([np.inf, -np.inf, np.nan], 0)
+    df['Ganancia al Regresar al Precio Inicial'] = df['Ganancia al Regresar al Precio Inicial'].replace([np.inf, -np.inf, np.nan], 0)
     return df
 
 def validar_precio_final(df, precio_esperado):
@@ -144,6 +150,7 @@ def main():
             df['Flotante'] = df['Flotante'].round(2)
             df['Puntos de salida'] = df['Puntos de salida'].round(2)
             df['Aumento Necesario para $5000'] = df['Aumento Necesario para $5000'].round(2)
+            df['Ganancia al Regresar al Precio Inicial'] = df['Ganancia al Regresar al Precio Inicial'].round(2)
             
             # Calcular precio esperado
             precio_esperado = precio_inicial + TOTAL_UNIDADES if direccion == "subida" else precio_inicial - TOTAL_UNIDADES
@@ -159,4 +166,5 @@ def main():
 # Ejecutar la aplicación
 if __name__ == "__main__":
     main()
+
 
