@@ -9,6 +9,7 @@ LOTES_A_UNIDADES = 100  # 1 lote = 100 unidades
 PASO = 15  # Paso de precio ajustado a 15 unidades
 TOTAL_UNIDADES = 120  # Total de unidades a cubrir
 DIVISOR_LOTE = 1.5932  # Divisor para ajustar los lotajes
+DIVISOR_CONSERVADOR = 2.11 # Divisor adicional para la opción conservadora
 
 # -------------------------------------------------------------------------
 # FUNCIONES AUXILIARES
@@ -27,28 +28,36 @@ def generar_precios(precio_inicial, total_unidades, paso=15, direccion="bajada")
         raise ValueError("La dirección debe ser 'bajada' o 'subida'.")
     return precios
 
-def asignar_lotes(precio_inicial, precios):
+def asignar_lotes(precio_inicial, precios, opcion):
     """
     Asigna lotes basados en la diferencia de precio desde el precio inicial.
     """
     lotes = []
     for i, precio in enumerate(precios):
         if i == 0:  # Para el precio inicial
-            lotes.append(1.0)  # Asignar 1.2 lotes a la primera compra
+            lotes.append(1.0)
         elif i == 1:  # Para la segunda compra
-            lotes.append(1.4)  # Asignar 1.2 lotes a la segunda compra
+            lotes.append(1.4)
         elif i == 2:  # Para la tercera compra
-            lotes.append(2.4)  # Asignar 2.4 lotes a la tercera compra
+            lotes.append(2.4)
         elif i == 3:  # Para la cuarta compra
-            lotes.append(2)  # Usar el mismo lotaje que en la tercera compra
+            lotes.append(2)
         elif i == 4:  # Para la quinta compra
-            lotes.append(2.4 * 1.3)  # Hacer el lotaje 1.5 veces más grande que el de la cuarta compra
-        elif i == 5:
-            lotes.append(0)
+            lotes.append(2.4 * 1.3)
+        elif i == 5:  # Para la sexta compra
+            if opcion == 1:
+                lotes.append(0)
+            elif opcion in [2, 3]:
+                lotes.append(2.4 * 1.3)
         elif i == 6:
             lotes.append(3 * 1.5)
-        elif i == 7:
-            lotes.append(0)
+        elif i == 7:  # Para la octava compra
+            if opcion == 1:
+                lotes.append(0)
+            elif opcion == 2:
+                lotes.append(3)
+            elif opcion == 3:
+                lotes.append(3)
         elif i == 8:
             lotes.append(4 * 1.5)
         else:
@@ -75,8 +84,12 @@ def asignar_lotes(precio_inicial, precios):
             else:
                 lotes.append(0.5)
 
-    # Dividir todos los lotajes entre 1.5932
-    lotes_ajustados = [lote / DIVISOR_LOTE for lote in lotes]
+    # Dividir los lotajes según la opción seleccionada
+    if opcion == 3:
+        lotes_ajustados = [lote / DIVISOR_CONSERVADOR for lote in lotes]
+    else:
+        lotes_ajustados = [lote / DIVISOR_LOTE for lote in lotes]
+
     return lotes_ajustados
 
 def crear_dataframe(precios, lotes):
@@ -143,13 +156,17 @@ def main():
     # Entrada del usuario: Dirección (subida o bajada)
     direccion = st.selectbox("Seleccione la dirección:", ["bajada", "subida"])
 
+    # Entrada del usuario: Opción para asignar lotes
+    opcion = st.selectbox("Seleccione la opción de asignación de lotes:", ["Neutra", "Agresiva", "Conservadora"], index=0)
+    opcion_numerica = {"Neutra": 1, "Agresiva": 2, "Conservadora": 3}[opcion]
+
     # Botón para ejecutar el cálculo
     if st.button("Calcular Distribución en Tramos"):
         # Generar lista de precios
         precios = generar_precios(precio_inicial, TOTAL_UNIDADES, PASO, direccion)
 
         # Asignar lotes según las reglas y ajustar
-        lotes = asignar_lotes(precio_inicial, precios)
+        lotes = asignar_lotes(precio_inicial, precios, opcion_numerica)
 
         # Verificar que las listas tengan la misma longitud
         if len(precios) != len(lotes):
@@ -185,4 +202,3 @@ def main():
 # Ejecutar la aplicación
 if __name__ == "__main__":
     main()
-
