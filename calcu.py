@@ -10,6 +10,8 @@ PASO = 15  # Paso de precio ajustado a 15 unidades
 TOTAL_UNIDADES = 120  # Total de unidades a cubrir
 DIVISOR_LOTE = 1.5932  # Divisor para ajustar los lotajes
 DIVISOR_CONSERVADOR = 2.11 # Divisor adicional para la opción conservadora
+DIVISOR_MUY_AGRESIVA = 1.6 # Divisor para la opción muy agresiva
+DIVISOR_SEMI_AGRESIVA = 2.25 # Divisor para la opción semi agresiva
 
 # -------------------------------------------------------------------------
 # FUNCIONES AUXILIARES
@@ -47,16 +49,18 @@ def asignar_lotes(precio_inicial, precios, opcion):
         elif i == 5:  # Para la sexta compra
             if opcion == 1:
                 lotes.append(0)
-            elif opcion in [2, 3]:
+            elif opcion in [2, 3, 4, 5, 6]:
                 lotes.append(2.4 * 1.3)
+            elif opcion == 7:  # Semi Conservadora
+                lotes.append(2)  # Mismo lotaje que la compra 4 indexada por 3
         elif i == 6:
             lotes.append(3 * 1.5)
         elif i == 7:  # Para la octava compra
-            if opcion == 1:
+            if opcion == 1 or opcion == 7:  # Neutra o Semi Conservadora
                 lotes.append(0)
             elif opcion == 2:
                 lotes.append(3)
-            elif opcion == 3:
+            elif opcion in [3, 4, 5, 6]:
                 lotes.append(3)
         elif i == 8:
             lotes.append(4 * 1.5)
@@ -87,6 +91,12 @@ def asignar_lotes(precio_inicial, precios, opcion):
     # Dividir los lotajes según la opción seleccionada
     if opcion == 3:
         lotes_ajustados = [lote / DIVISOR_CONSERVADOR for lote in lotes]
+    elif opcion == 4:  # Muy Agresiva
+        lotes_ajustados = [(lote * 1.25) / DIVISOR_MUY_AGRESIVA for lote in lotes]
+    elif opcion == 5:  # Semi Agresiva
+        lotes_ajustados = [(lote * 1.25) / DIVISOR_SEMI_AGRESIVA for lote in lotes]
+    elif opcion == 6:  # Súper Agresiva
+        lotes_ajustados = [(lote * 1.25 * 1.2) / DIVISOR_MUY_AGRESIVA for lote in lotes]
     else:
         lotes_ajustados = [lote / DIVISOR_LOTE for lote in lotes]
 
@@ -157,8 +167,8 @@ def main():
     direccion = st.selectbox("Seleccione la dirección:", ["bajada", "subida"])
 
     # Entrada del usuario: Opción para asignar lotes
-    opcion = st.selectbox("Seleccione la opción de asignación de lotes:", ["Neutra", "Agresiva", "Conservadora"], index=0)
-    opcion_numerica = {"Neutra": 1, "Agresiva": 2, "Conservadora": 3}[opcion]
+    opcion = st.selectbox("Seleccione la opción de asignación de lotes:", ["Conservadora", "Semi Conservadora", "Neutra", "Semi Agresiva", "Agresiva", "Muy Agresiva", "Súper Agresiva"], index=0)
+    opcion_numerica = {"Conservadora": 3, "Semi Conservadora": 7, "Neutra": 1, "Semi Agresiva": 5, "Agresiva": 2, "Muy Agresiva": 4, "Súper Agresiva": 6}[opcion]
 
     # Botón para ejecutar el cálculo
     if st.button("Calcular Distribución en Tramos"):
