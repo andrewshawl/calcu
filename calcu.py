@@ -32,30 +32,49 @@ def asignar_lotes(precio_inicial, precios):
     Asigna lotes basados en la diferencia de precio desde el precio inicial.
     """
     lotes = []
-    for precio in precios:
-        diferencia = abs(precio_inicial - precio)
-        if 0 <= diferencia <= 15:
-            lotes.append(0.5)
-        elif diferencia == 20:
-            lotes.append(0.0)
-        elif diferencia in [25, 30]:
-            lotes.append(2.0)
-        elif 35 <= diferencia <= 55:
-            if diferencia == 55:
-                lotes.append(0.0)
-            else:
-                lotes.append(0.625)
-        elif diferencia == 60:
-            lotes.append(6.0)
-        elif 65 <= diferencia <= 90:
-            lotes.append(2.0)
-        elif 91 <= diferencia <= 94:
-            lotes.append(1.5)
-        elif 95 <= diferencia <= 120:
-            lotes.append(3.375)
+    for i, precio in enumerate(precios):
+        if i == 0:  # Para el precio inicial
+            lotes.append(1.0)  # Asignar 1.2 lotes a la primera compra
+        elif i == 1:  # Para la segunda compra
+            lotes.append(1.4)  # Asignar 1.2 lotes a la segunda compra
+        elif i == 2:  # Para la tercera compra
+            lotes.append(2.4)  # Asignar 2.4 lotes a la tercera compra
+        elif i == 3:  # Para la cuarta compra
+            lotes.append(2)  # Usar el mismo lotaje que en la tercera compra
+        elif i == 4:  # Para la quinta compra
+            lotes.append(2.4 * 1.3)  # Hacer el lotaje 1.5 veces más grande que el de la cuarta compra
+        elif i == 5:
+            lotes.append(0)
+        elif i == 6:
+            lotes.append(3 * 1.5)
+        elif i == 7:
+            lotes.append(0)
+        elif i == 8:
+            lotes.append(4 * 1.5)
         else:
-            lotes.append(0.5)
-    
+            diferencia = abs(precio_inicial - precio)
+            if 0 <= diferencia <= 15:
+                lotes.append(0.5)
+            elif diferencia == 20:
+                lotes.append(0.0)
+            elif diferencia in [25, 30]:
+                lotes.append(2.0)
+            elif 35 <= diferencia <= 55:
+                if diferencia == 55:
+                    lotes.append(0.0)
+                else:
+                    lotes.append(0.625)
+            elif diferencia == 60:
+                lotes.append(6.0)
+            elif 65 <= diferencia <= 90:
+                lotes.append(2.0)
+            elif 91 <= diferencia <= 94:
+                lotes.append(1.5)
+            elif 95 <= diferencia <= 120:
+                lotes.append(3.375)
+            else:
+                lotes.append(0.5)
+
     # Dividir todos los lotajes entre 1.5932
     lotes_ajustados = [lote / DIVISOR_LOTE for lote in lotes]
     return lotes_ajustados
@@ -111,7 +130,7 @@ def validar_precio_final(df, precio_esperado):
 
 def main():
     st.title("Calculadora de Distribución en Tramos (Intervalos de 15)")
-    
+
     # Entrada del usuario: Precio inicial
     precio_inicial = st.number_input(
         "Precio inicial del oro (p):",
@@ -120,28 +139,28 @@ def main():
         step=15.00,
         format="%.2f"
     )
-    
+
     # Entrada del usuario: Dirección (subida o bajada)
     direccion = st.selectbox("Seleccione la dirección:", ["bajada", "subida"])
-    
+
     # Botón para ejecutar el cálculo
     if st.button("Calcular Distribución en Tramos"):
         # Generar lista de precios
         precios = generar_precios(precio_inicial, TOTAL_UNIDADES, PASO, direccion)
-        
+
         # Asignar lotes según las reglas y ajustar
         lotes = asignar_lotes(precio_inicial, precios)
-        
+
         # Verificar que las listas tengan la misma longitud
         if len(precios) != len(lotes):
             st.error("Error: Las listas de precios y lotes no tienen la misma longitud.")
         else:
             # Crear DataFrame
             df = crear_dataframe(precios, lotes)
-            
+
             # Calcular acumulados
             df = calcular_acumulados(df, precio_inicial, direccion)
-            
+
             # Redondear valores para mejor visualización
             df['Precio'] = df['Precio'].round(2)
             df['Lotes'] = df['Lotes'].round(4)
@@ -151,13 +170,13 @@ def main():
             df['Puntos de salida'] = df['Puntos de salida'].round(2)
             df['Aumento Necesario para $5000'] = df['Aumento Necesario para $5000'].round(2)
             df['Ganancia al Regresar al Precio Inicial'] = df['Ganancia al Regresar al Precio Inicial'].round(2)
-            
+
             # Calcular precio esperado
             precio_esperado = precio_inicial + TOTAL_UNIDADES if direccion == "subida" else precio_inicial - TOTAL_UNIDADES
-            
+
             # Validar el precio final
             es_valido = validar_precio_final(df, precio_esperado)
-            
+
             if es_valido:
                 # Mostrar resultados
                 st.write("### Detalles de las Transacciones:")
